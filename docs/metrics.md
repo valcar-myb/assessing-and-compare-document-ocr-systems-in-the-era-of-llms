@@ -27,6 +27,14 @@ CA and WA are computed with the **ISRI Analytic Tools for OCR Evaluation**, via
 [`ocreval`](https://github.com/eddieantonio/ocreval), a UTF-8–compatible
 reimplementation of the ISRI toolkit. See [Setup](setup.md) for installation.
 
+**Implementation:** [`src/evaluation/accuracy/ocreval_wrapper.py`](../src/evaluation/accuracy/ocreval_wrapper.py)
+— a thin wrapper around the `accuracy` (CA) and `wordacc` (WA) tools; values are
+returned as percentages (0–100).
+
+```bash
+python src/evaluation/accuracy/ocreval_wrapper.py ground_truth.txt ocr_output.txt
+```
+
 > **Limitation.** CA and WA operate on full-page linearized text and are
 > therefore sensitive to the **serialization (reading) order** in which text
 > regions are concatenated. A system that recognizes all text correctly but
@@ -44,6 +52,9 @@ $$NED(s_{pred}, s_{gt}) = \frac{N_{ins} + N_{del} + N_{sub}}{\max(|s_{pred}|, |s
 Reported as a similarity score:
 
 $$NED_{sim} = 1 - NED(s_{pred}, s_{gt})$$
+
+**Implementation:** [`src/evaluation/accuracy/ned.py`](../src/evaluation/accuracy/ned.py)
+(returns `ned_sim` in `[0, 1]`; uses `rapidfuzz` when available).
 
 ### Flexible Character Accuracy (FCA)
 
