@@ -1,8 +1,7 @@
 # Assessing and Comparing Document OCR Systems in the Era of Large Language Models
 
 Companion repository for the paper *"Assessing and Comparing Document OCR
-Systems in the Era of Large Language Models"* (submitted to *Information
-Processing and Management*, Elsevier).
+Systems in the Era of Large Language Models"*.
 
 This repository documents the experimental evaluation to ensure reproducibility
 and to facilitate future benchmarking and model extensions. It benchmarks **16
@@ -31,11 +30,12 @@ docs/                # descriptive documentation (systems, metrics, costs, setup
 
 ## Citation
 
+Citation details will be added once the paper is published.
+
 ```bibtex
-@article{ocr_llm_assessment,
-  title   = {Assessing and Comparing Document OCR Systems in the Era of Large Language Models},
-  journal = {Information Processing and Management},
-  year    = {2026}
+@unpublished{ocr_llm_assessment,
+  title = {Assessing and Comparing Document OCR Systems in the Era of Large Language Models},
+  note  = {Manuscript under review}
 }
 ```
 
