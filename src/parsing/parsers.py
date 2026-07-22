@@ -125,20 +125,21 @@ class OCRParser:
     def get_parser(system_name: str):
         """Get the parser function for a specific system."""
         parsers = {
+            # Keys match the system identifiers used in config/systems.yaml.
+            'tesseract': OCRParser.parse_tesseract,
             'doctr': OCRParser.parse_doctr,
             'paddleocr': OCRParser.parse_paddleocr,
-            'tesseract': OCRParser.parse_tesseract,
-            'aws_textract': OCRParser.parse_aws_textract,
             'azure_vision': OCRParser.parse_azure_vision,
-            'azure_document': OCRParser.parse_azure_document,
+            'azure_document_intelligence': OCRParser.parse_azure_document,
             'google_vision': OCRParser.parse_google_vision,
-            'google_document': OCRParser.parse_google_document,
+            'google_document_ai': OCRParser.parse_google_document,
+            'aws_textract': OCRParser.parse_aws_textract,
             'gpt4o': OCRParser.parse_gpt4o,
-            'gemini_flash': OCRParser.parse_gemini_flash,
-            'claude_haiku': OCRParser.parse_claude_haiku,
-            'mistral_ocr': OCRParser.parse_mistral_ocr,
+            'gemini_2_0_flash': OCRParser.parse_gemini_flash,
+            'claude_haiku_4_5': OCRParser.parse_claude_haiku,
+            'mistral_document_ai': OCRParser.parse_mistral_ocr,
             # Open-source VLMs served via vLLM use the OpenAI-compatible format.
-            'qwen25vl': OCRParser.parse_vllm_openai,
+            'qwen2_5_vl': OCRParser.parse_vllm_openai,
             'gemma3': OCRParser.parse_vllm_openai,
             'paddleocr_vl': OCRParser.parse_vllm_openai,
             'deepseek_ocr': OCRParser.parse_vllm_openai,
