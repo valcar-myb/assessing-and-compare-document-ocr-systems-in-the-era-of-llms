@@ -23,9 +23,10 @@ The repository is organized around four self-contained areas:
 
 ```
 README.md            # this file (hub)
-requirements.txt     # shared Python dependencies
 LICENSE
+config/              # declarative system configuration (systems.yaml)
 docs/                # descriptive documentation (systems, metrics, costs, setup)
+src/                 # evaluation metrics and OCR/LLM system clients
 ```
 
 ## Citation

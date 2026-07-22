@@ -20,20 +20,26 @@ open-source OCR engines and LLMs were run locally on the same instance.
 
 ## Dependencies
 
-Shared dependencies are listed in [`requirements.txt`](../requirements.txt):
-
-```bash
-pip install -r requirements.txt
-```
-
-System-specific dependencies (OCR engines, cloud SDKs, LLM clients) are
-installed per system. Recommended isolation:
+The evaluation harness (the accuracy metrics under `src/evaluation/`) requires
+**Python 3.10** (as in the experimental environment, Ubuntu 22.04) and
+[`rapidfuzz`](https://pypi.org/project/rapidfuzz/), used for the edit-distance
+computations in NED and Flexible Character Accuracy:
 
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install rapidfuzz
 ```
+
+Character- and word-level accuracy (CA, WA) additionally rely on the external
+`ocreval` tool (see below).
+
+The OCR/LLM system clients under `src/ocr_systems/` each depend on their own
+provider library or SDK (e.g. `pytesseract`, `python-doctr`, `paddleocr`,
+`boto3`, `azure-ai-*`, `google-cloud-*`, `openai`, `anthropic`, `mistralai`, and
+`vllm` for the open-source VLMs). These are heavier and installed only for the
+systems being run; the exact library/SDK for each system is listed in
+[`config/systems.yaml`](../config/systems.yaml).
 
 ## Accuracy evaluation tool: ocreval
 
