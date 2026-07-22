@@ -29,17 +29,6 @@ docs/                # descriptive documentation (systems, metrics, costs, setup
 src/                 # evaluation metrics and OCR/LLM system clients
 ```
 
-## Citation
-
-Citation details will be added once the paper is published.
-
-```bibtex
-@unpublished{ocr_llm_assessment,
-  title = {Assessing and Comparing Document OCR Systems in the Era of Large Language Models},
-  note  = {Manuscript under review}
-}
-```
-
 ## License
 
 Released under the [MIT License](LICENSE).
