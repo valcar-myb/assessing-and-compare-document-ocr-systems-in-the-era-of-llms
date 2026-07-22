@@ -48,7 +48,7 @@ class VLLMOpenAIOCR(OCRSystem):
                         ],
                     }
                 ],
-                'max_tokens': self.config.get('max_tokens', 1024),
+                'max_tokens': self.config.get('max_tokens', 4096),
                 'temperature': self.config.get('temperature', 0.0),
             }
 

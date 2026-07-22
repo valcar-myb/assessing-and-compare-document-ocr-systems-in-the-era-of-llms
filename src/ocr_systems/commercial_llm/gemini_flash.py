@@ -40,7 +40,7 @@ class GeminiFlashOCR(OCRSystem):
                 model=self.config.get('model', 'gemini-2.0-flash'),
                 contents=[img, prompt],
                 config=types.GenerateContentConfig(
-                    max_output_tokens=self.config.get('max_tokens', 8192),
+                    max_output_tokens=self.config.get('max_tokens', 4096),
                     temperature=self.config.get('temperature', 0.0),
                 ),
             )
