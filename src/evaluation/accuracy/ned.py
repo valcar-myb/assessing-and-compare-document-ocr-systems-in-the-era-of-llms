@@ -1,50 +1,28 @@
 """
-Normalized Edit Distance (NED) e NED similarity per la valutazione OCR.
+Normalized Edit Distance (NED) and NED similarity for OCR evaluation.
 
-Definizioni (costi unitari per inserzione/cancellazione/sostituzione):
+Definitions (unit costs for insertion/deletion/substitution):
 
     NED     = edit_distance(pred, gt) / max(|pred|, |gt|)
     NED_sim = 1 - NED
 
-NED_sim è in [0, 1] (1 = identico). Modulo standalone e plug-and-play:
-opera direttamente su due stringhe (ground truth e output OCR).
-Usa rapidfuzz se disponibile (più veloce), altrimenti fallback puro Python.
+NED_sim lies in [0, 1] (1 = identical). Standalone, plug-and-play module:
+it operates directly on two strings (ground truth and OCR output).
+Edit distance is computed with rapidfuzz.
 """
 
 from typing import Dict
 
-try:
-    from rapidfuzz.distance import Levenshtein as _RF_Levenshtein
-    _RAPIDFUZZ_AVAILABLE = True
-except ImportError:
-    _RAPIDFUZZ_AVAILABLE = False
-
-
-def _levenshtein_python(s1: str, s2: str) -> int:
-    """Distanza di Levenshtein a costi unitari (puro Python, memoria O(min))."""
-    if len(s1) < len(s2):
-        s1, s2 = s2, s1
-    if len(s2) == 0:
-        return len(s1)
-    previous = list(range(len(s2) + 1))
-    for i, c1 in enumerate(s1, start=1):
-        current = [i]
-        for j, c2 in enumerate(s2, start=1):
-            cost = 0 if c1 == c2 else 1
-            current.append(min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost))
-        previous = current
-    return previous[-1]
+from rapidfuzz.distance import Levenshtein as _Levenshtein
 
 
 def edit_distance(pred: str, gt: str) -> int:
-    """Distanza di Levenshtein a costi unitari tra pred e gt."""
-    if _RAPIDFUZZ_AVAILABLE:
-        return _RF_Levenshtein.distance(pred, gt)
-    return _levenshtein_python(pred, gt)
+    """Unit-cost Levenshtein distance between pred and gt (via rapidfuzz)."""
+    return _Levenshtein.distance(pred, gt)
 
 
 def normalized_edit_distance(pred: str, gt: str) -> float:
-    """NED = edit_distance / max(|pred|, |gt|). Ritorna 0.0 se entrambe vuote."""
+    """NED = edit_distance / max(|pred|, |gt|). Returns 0.0 if both are empty."""
     denom = max(len(pred), len(gt))
     if denom == 0:
         return 0.0
@@ -58,16 +36,16 @@ def ned_similarity(pred: str, gt: str) -> float:
 
 def evaluate(pred: str, gt: str) -> Dict[str, float]:
     """
-    Valuta NED tra pred (output OCR) e gt (ground truth).
-    Ritorna un dict con:
+    Evaluate NED between pred (OCR output) and gt (ground truth).
+    Returns a dict with:
       - ned: float in [0, 1]
-      - ned_sim: float in [0, 1] (1 = identico)
+      - ned_sim: float in [0, 1] (1 = identical)
     """
     ned = normalized_edit_distance(pred, gt)
     return {"ned": ned, "ned_sim": 1.0 - ned}
 
 
 if __name__ == "__main__":
-    # Test rapido
+    # Quick test
     print("Expected ned_sim ~1.0:", evaluate("Hello world", "Hello world"))
     print("With errors:", evaluate("Helo wrld", "Hello world"))

@@ -1,5 +1,11 @@
 submission/
 .DS_Store
 
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
 # Local working notes (not part of the published repo)
 PLAN.md

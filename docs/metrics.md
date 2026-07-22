@@ -54,7 +54,7 @@ Reported as a similarity score:
 $$NED_{sim} = 1 - NED(s_{pred}, s_{gt})$$
 
 **Implementation:** [`src/evaluation/accuracy/ned.py`](../src/evaluation/accuracy/ned.py)
-(returns `ned_sim` in `[0, 1]`; uses `rapidfuzz` when available).
+(returns `ned_sim` in `[0, 1]`; edit distance computed with `rapidfuzz`).
 
 ### Flexible Character Accuracy (FCA)
 
@@ -75,8 +75,7 @@ FCA operates on **line units**:
 **Implementation:** [`src/evaluation/accuracy/flexible_char_accuracy.py`](../src/evaluation/accuracy/flexible_char_accuracy.py)
 — a Python reimplementation of PRImA's Flexible Character Accuracy. It performs
 non-sequential line-to-line matching over a grid of penalty coefficients and
-returns the best character accuracy. It uses `rapidfuzz` for edit distance when
-available, falling back to a pure-Python implementation otherwise.
+returns the best character accuracy. Edit distance is computed with `rapidfuzz`.
 
 ```python
 from src.evaluation.accuracy.flexible_char_accuracy import evaluate

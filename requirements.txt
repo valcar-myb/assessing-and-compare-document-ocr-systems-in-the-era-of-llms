@@ -7,7 +7,4 @@ pyyaml
 pillow
 requests
 tqdm
-
-# Optional: fast edit distance backend for Flexible Character Accuracy
-# (the FCA module falls back to a pure-Python implementation if absent).
 rapidfuzz

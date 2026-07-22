@@ -1,16 +1,16 @@
 """
-Wrapper per ocreval (ISRI OCR evaluation tools) per Character Accuracy (CA)
-e Word Accuracy (WA), come usate nel paper.
+Wrapper around ocreval (ISRI OCR evaluation tools) for Character Accuracy (CA)
+and Word Accuracy (WA), as used in the paper.
 
-Richiede ocreval installato e nel PATH (tool `accuracy` e `wordacc`).
-Vedi docs/setup.md per l'installazione.
+Requires ocreval installed and on the PATH (the `accuracy` and `wordacc` tools).
+See docs/setup.md for installation.
 
-Modulo standalone e plug-and-play: opera su coppie di file di testo UTF-8
-(ground truth / output OCR). Entrambi i tool ocreval stampano una riga
-`<valore>%  Accuracy`; i valori restituiti sono percentuali (0-100), come
-riportate nel paper.
+Standalone, plug-and-play module: it operates on pairs of UTF-8 text files
+(ground truth / OCR output). Both ocreval tools print a line
+`<value>%  Accuracy`; the returned values are percentages (0-100), as reported
+in the paper.
 
-Uso da riga di comando:
+Command-line usage:
     python ocreval_wrapper.py <ground_truth.txt> <ocr_output.txt>
 """
 
@@ -21,51 +21,51 @@ import sys
 from pathlib import Path
 from typing import Dict, Optional
 
-# Prima riga "<valore>%  Accuracy" del report (character o word accuracy).
+# First "<value>%  Accuracy" line of the report (character or word accuracy).
 _ACCURACY_RE = re.compile(r"([-\d.]+)\s*%\s+Accuracy")
 
 
 def _run_tool(tool: str, gt_path, pred_path, report_path: Optional[str] = None) -> str:
-    """Esegue un tool ocreval su (correctfile=gt, generatedfile=pred) e ne ritorna il report."""
+    """Run an ocreval tool on (correctfile=gt, generatedfile=pred) and return its report."""
     if shutil.which(tool) is None:
         raise RuntimeError(
-            f"'{tool}' non trovato nel PATH. Installa ocreval (vedi docs/setup.md)."
+            f"'{tool}' not found on PATH. Install ocreval (see docs/setup.md)."
         )
     args = [tool, str(gt_path), str(pred_path)]
     if report_path is not None:
         args.append(str(report_path))
     proc = subprocess.run(args, capture_output=True, text=True)
     if proc.returncode != 0:
-        raise RuntimeError(f"'{tool}' fallito (exit {proc.returncode}): {proc.stderr.strip()}")
+        raise RuntimeError(f"'{tool}' failed (exit {proc.returncode}): {proc.stderr.strip()}")
     if report_path is not None:
         return Path(report_path).read_text(encoding="utf-8", errors="replace")
     return proc.stdout
 
 
 def _parse_accuracy(report: str) -> float:
-    """Estrae la prima percentuale di accuracy dal report ocreval."""
+    """Extract the first accuracy percentage from an ocreval report."""
     match = _ACCURACY_RE.search(report)
     if match is None:
-        raise RuntimeError("Impossibile estrarre l'accuracy dal report ocreval.")
+        raise RuntimeError("Could not extract accuracy from the ocreval report.")
     return float(match.group(1))
 
 
 def character_accuracy(gt_path, pred_path, report_path: Optional[str] = None) -> float:
-    """Character Accuracy (%) via il tool `accuracy` di ocreval."""
+    """Character Accuracy (%) via ocreval's `accuracy` tool."""
     return _parse_accuracy(_run_tool("accuracy", gt_path, pred_path, report_path))
 
 
 def word_accuracy(gt_path, pred_path, report_path: Optional[str] = None) -> float:
-    """Word Accuracy (%) via il tool `wordacc` di ocreval."""
+    """Word Accuracy (%) via ocreval's `wordacc` tool."""
     return _parse_accuracy(_run_tool("wordacc", gt_path, pred_path, report_path))
 
 
 def evaluate(gt_path, pred_path) -> Dict[str, float]:
     """
-    Valuta CA e WA per una coppia (ground truth, output OCR).
-    Ritorna un dict con:
-      - char_accuracy: float (percentuale 0-100)
-      - word_accuracy: float (percentuale 0-100)
+    Evaluate CA and WA for a (ground truth, OCR output) pair.
+    Returns a dict with:
+      - char_accuracy: float (percentage 0-100)
+      - word_accuracy: float (percentage 0-100)
     """
     return {
         "char_accuracy": character_accuracy(gt_path, pred_path),
@@ -75,7 +75,7 @@ def evaluate(gt_path, pred_path) -> Dict[str, float]:
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Uso: python ocreval_wrapper.py <ground_truth.txt> <ocr_output.txt>")
+        print("Usage: python ocreval_wrapper.py <ground_truth.txt> <ocr_output.txt>")
         sys.exit(1)
     result = evaluate(sys.argv[1], sys.argv[2])
     print(f"Character Accuracy: {result['char_accuracy']:.2f}%")

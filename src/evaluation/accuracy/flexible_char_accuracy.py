@@ -1,36 +1,33 @@
 """
-Reimplementazione in Python di FlexCharacterAccuracy (PRImA Research Lab).
-Accuracy caratteri "flessibile" con matching non sequenziale riga-riga.
-Usa rapidfuzz per edit distance se disponibile (molto più veloce), altrimenti Python.
+Python reimplementation of FlexCharacterAccuracy (PRImA Research Lab).
+Flexible character accuracy with non-sequential line-by-line matching.
+Edit distance is computed with rapidfuzz.
 """
 
 import os
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-# Costi edit distance: (inserzione, cancellazione, sostituzione)
+from rapidfuzz.distance import Levenshtein as _Levenshtein
+
+# Edit distance costs: (insertion, deletion, substitution)
 COST_INS1_DEL1_SUBST1 = (1, 1, 1)
 COST_INS1_DEL1_SUBST2 = (1, 1, 2)
 
-# Griglia ridotta opzionale: FLEX_FAST_GRID=1 per ~16 combinazioni (più veloce). Default: griglia piena (768, come implementazione originale).
+# Optional reduced grid: FLEX_FAST_GRID=1 for ~16 combinations (faster).
+# Default: full grid (768, as in the original implementation).
 _FLEX_FAST_GRID = os.environ.get("FLEX_FAST_GRID", "").lower() in ("1", "true", "yes")
-
-try:
-    from rapidfuzz.distance import Levenshtein as _RF_Levenshtein
-    _RAPIDFUZZ_AVAILABLE = True
-except ImportError:
-    _RAPIDFUZZ_AVAILABLE = False
 
 
 def normalize_text(text: str) -> str:
-    """Rimuove \\r\\n e \\n dal testo (come nel Java)."""
+    """Remove \\r\\n and \\n from the text (as in the Java version)."""
     if not text:
         return ""
     return text.replace("\r\n", "").replace("\n", "")
 
 
 def split_into_lines(text: str) -> List[str]:
-    """Split su \\r\\n o \\n, restituisce solo righe non vuote."""
+    """Split on \\r\\n or \\n; return only non-empty lines."""
     if not text:
         return []
     if "\r\n" in text:
@@ -40,33 +37,6 @@ def split_into_lines(text: str) -> List[str]:
     return [p for p in parts if p is not None and p != ""]
 
 
-def _edit_distance_python(
-    s1: str,
-    s2: str,
-    cost_ins: int = 1,
-    cost_del: int = 1,
-    cost_sub: int = 1,
-) -> int:
-    """Levenshtein con costi configurabili (programmazione dinamica, puro Python)."""
-    n, m = len(s1), len(s2)
-    dp = [[0] * (m + 1) for _ in range(n + 1)]
-    for i in range(n + 1):
-        dp[i][0] = i * cost_del
-    for j in range(m + 1):
-        dp[0][j] = j * cost_ins
-    for i in range(1, n + 1):
-        for j in range(1, m + 1):
-            if s1[i - 1] == s2[j - 1]:
-                dp[i][j] = dp[i - 1][j - 1]
-            else:
-                dp[i][j] = min(
-                    dp[i - 1][j] + cost_del,
-                    dp[i][j - 1] + cost_ins,
-                    dp[i - 1][j - 1] + cost_sub,
-                )
-    return dp[n][m]
-
-
 def edit_distance(
     s1: str,
     s2: str,
@@ -74,12 +44,8 @@ def edit_distance(
     cost_del: int = 1,
     cost_sub: int = 1,
 ) -> int:
-    """
-    Levenshtein con costi configurabili. Usa rapidfuzz (C) se disponibile e costi (1,1,1) o (1,1,2).
-    """
-    if _RAPIDFUZZ_AVAILABLE and cost_ins == 1 and cost_del == 1 and cost_sub in (1, 2):
-        return _RF_Levenshtein.distance(s1, s2, weights=(cost_ins, cost_del, cost_sub))
-    return _edit_distance_python(s1, s2, cost_ins, cost_del, cost_sub)
+    """Levenshtein distance with configurable costs (via rapidfuzz)."""
+    return _Levenshtein.distance(s1, s2, weights=(cost_ins, cost_del, cost_sub))
 
 
 def character_accuracy(
@@ -88,7 +54,7 @@ def character_accuracy(
     cost_function: str = "INS1_DEL1_SUBST1",
 ) -> float:
     """
-    Accuratezza caratteri classica su testo normalizzato.
+    Classic character accuracy on normalized text.
     accuracy = max(0, (len(expected) - edit_dist) / len(expected)).
     """
     exp = normalize_text(expected)
@@ -104,7 +70,7 @@ def character_accuracy(
 
 @dataclass
 class MatchResult:
-    """Risultato del miglior match locale (substring sliding)."""
+    """Result of the best local match (sliding substring)."""
     min_edit_dist: int
     substring_pos: int
     substring_length: int
@@ -117,7 +83,7 @@ class MatchResult:
         offset_coeff: int,
         length_coeff: int,
     ) -> int:
-        """Formula penalty come nel Java."""
+        """Penalty formula (as in the Java version)."""
         if self.length_diff <= 1:
             offset = 0
         else:
@@ -145,10 +111,10 @@ def calculate_best_edit_distance(
     cache: Dict[str, Dict[str, MatchResult]],
 ) -> MatchResult:
     """
-    Per ogni finestra della lunghezza della stringa corta sulla lunga,
-    calcola edit distance; restituisce il MatchResult con distanza minima.
-    In Python usiamo slice corretti (expected[i:i+len(result)]) per evitare
-    il bug del Java (substring con length-1).
+    For each window of the short string's length over the long string,
+    compute the edit distance; return the MatchResult with the minimum
+    distance. In Python we use correct slices (expected[i:i+len(result)])
+    to avoid the Java bug (substring with length-1).
     """
     cache_exp = cache.get(expected)
     if cache_exp is not None:
@@ -205,7 +171,7 @@ def calculate_best_edit_distance(
 
 
 def _sort_by_length(lines: List[str]) -> None:
-    """Ordina in-place per lunghezza decrescente."""
+    """Sort in place by decreasing length."""
     lines.sort(key=len, reverse=True)
 
 
@@ -220,8 +186,8 @@ def calculate_flex_edit_distance(
     cache: Dict[str, Dict[str, MatchResult]],
 ) -> Tuple[int, int, int]:
     """
-    Calcola la flex edit distance tra le due liste di righe.
-    Ritorna (expected_chars, result_chars, total_edit_dist).
+    Compute the flex edit distance between the two lists of lines.
+    Returns (expected_chars, result_chars, total_edit_dist).
     """
     total_edit_dist = 0
     expected_number_of_chars = sum(len(s) for s in expected_lines)
@@ -231,7 +197,7 @@ def calculate_flex_edit_distance(
     res_lines = list(result_lines)
     _sort_by_length(exp_lines)
 
-    deletion_penalty = 1  # come nel Java per entrambe le cost function
+    deletion_penalty = 1  # as in the Java version for both cost functions
     insert_penalty = 1
 
     while exp_lines:
@@ -321,13 +287,13 @@ def calculate_flex_edit_distance(
 
 
 def _coefficient_grid(fast: bool) -> List[Tuple[int, int, int, int]]:
-    """Griglia (edit_dist_coeff, length_diff_coeff, offset_coeff, length_coeff)."""
+    """Grid of (edit_dist_coeff, length_diff_coeff, offset_coeff, length_coeff)."""
     if fast:
-        # Griglia ridotta: ~16 combinazioni, risultato molto vicino al full
-        edit_range = [15, 25]  # era 15,20,25,30
-        length_diff_range = [0, 12]  # era 0,3,6,...,21
-        offset_range = [0, 2]  # era 0,1,2,3
-        length_range = [0, 3]  # era 0,1,...,5
+        # Reduced grid: ~16 combinations, result very close to the full grid
+        edit_range = [15, 25]  # was 15, 20, 25, 30
+        length_diff_range = [0, 12]  # was 0, 3, 6, ..., 21
+        offset_range = [0, 2]  # was 0, 1, 2, 3
+        length_range = [0, 3]  # was 0, 1, ..., 5
     else:
         edit_range = list(range(15, 31, 5))
         length_diff_range = list(range(0, 24, 3))
@@ -349,12 +315,14 @@ def evaluate(
     fast_grid: bool = None,
 ) -> Dict[str, float]:
     """
-    Valuta Flex Character Accuracy tra expected (ground truth) e result (OCR).
-    Ritorna un dict con:
+    Evaluate Flexible Character Accuracy between expected (ground truth) and
+    result (OCR output). Returns a dict with:
       - flex_character_accuracy: float in [0, 1]
       - chars_in_ground_truth: int
       - chars_in_result: int
-    fast_grid: se True usa griglia ridotta (~16 combinazioni invece di 768). Default False (griglia piena come originale). Oppure env FLEX_FAST_GRID=1.
+    fast_grid: if True, use the reduced grid (~16 combinations instead of 768).
+    Default False (full grid, as in the original). Can also be set via the
+    FLEX_FAST_GRID=1 environment variable.
     """
     if fast_grid is None:
         fast_grid = _FLEX_FAST_GRID
@@ -363,7 +331,7 @@ def evaluate(
     expected_number_of_chars = 0
     result_number_of_chars = 0
 
-    # Accuratezza caratteri classica (minimo)
+    # Classic character accuracy (lower bound)
     max_char_acc = character_accuracy(expected, result, cost_function)
 
     grid = _coefficient_grid(fast_grid)
@@ -402,7 +370,7 @@ def evaluate(
 
 
 if __name__ == "__main__":
-    # Test rapido
+    # Quick test
     exp = "Hello world\nSecond line"
     res = "Hello world\nSecond line"
     out = evaluate(exp, res)
