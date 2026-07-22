@@ -7,7 +7,7 @@ strategies, but to report the expenses effectively incurred during
 experimentation.
 
 All monetary values are derived from the official pricing pages of the
-respective providers and are subject to change. Costs and processing time are
+respective providers **as of October 2025** and are subject to change. Costs and processing time are
 reported for the **simple-prompt** condition only; the CoT prompt is
 operationally equivalent (comparable output length, only a slightly longer
 input prompt).
@@ -113,5 +113,5 @@ rate of \$0.60 per 1,000 pages for monthly volumes above 5 million pages
 Mistral, Gemini) can reduce token-based costs by up to 50% for workloads that do
 not require real-time processing.
 
-> All pricing figures were retrieved from official provider documentation and
-> are subject to change.
+> All pricing figures were retrieved from official provider documentation in
+> October 2025 and are subject to change.
