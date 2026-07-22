@@ -1,0 +1,137 @@
+# Exact settings used in the paper, for reproducibility.
+#
+# Declarative reference only: version/model, access library or SDK, key
+# parameters, prompt(s), and output format for each of the 16 evaluated systems.
+# Prompt texts (simple / Chain-of-Thought) are reported in docs/systems.md.
+# How raw outputs are converted to plain text is a matter of client code and is
+# intentionally not described here.
+
+open_source_ocr:
+  tesseract:
+    version: "5.0"
+    library: pytesseract
+    device: cpu
+    params: { psm: 3, lang: eng }
+    output_format: plain_text
+  doctr:
+    version: "0.8.1"
+    library: python-doctr
+    backend: pytorch
+    device: [cpu, gpu]
+    detection: "DBNet (ResNet-50)"
+    recognition: "CRNN (VGG16-BN)"
+    output_format: json
+  paddleocr:
+    version: "2.3"
+    library: paddleocr
+    configuration: "PP-OCRv3 (MobileNetV3 detector + SVTR-LCNet recognizer)"
+    device: [cpu, gpu]
+    output_format: json
+  paddleocr_ft:
+    description: "PaddleOCR with the SVTR-LCNet recognizer fine-tuned per dataset"
+    base_weights: "PP-OCRv3 (official pretrained)"
+    fine_tuned_on: [sroie, funsd, iam]   # one model each; FOX is evaluation-only
+    epochs: 50
+    output_format: json
+
+commercial_ocr:
+  azure_vision:
+    service: "Azure AI Vision"
+    version: "4.0"
+    sdk: azure-ai-vision
+    api: synchronous
+    region: "West Europe (Netherlands)"
+    output_format: json
+  azure_document_intelligence:
+    service: "Azure Document Intelligence"
+    sdk: azure-ai-documentintelligence
+    api: asynchronous
+    region: "West Europe (Netherlands)"
+    output_format: json
+  google_vision:
+    service: "Google Cloud Vision OCR"
+    sdk: google-cloud-vision
+    api: synchronous
+    region: global
+    output_format: json
+  google_document_ai:
+    service: "Google Document AI OCR"
+    sdk: google-cloud-documentai
+    api: asynchronous
+    region: global
+    output_format: json
+  aws_textract:
+    service: "AWS Textract"
+    version: latest        # AWS abstracts versioning
+    sdk: boto3
+    region: "eu-central-1 (Frankfurt)"
+    output_format: json
+
+commercial_llm:
+  gpt4o:
+    provider: OpenAI
+    model: "gpt-4o-2024-08-06"
+    sdk: openai
+    params: { temperature: 0.0, max_tokens: 4096 }
+    prompts: [simple, cot]
+    output_format: plain_text
+  gemini_2_0_flash:
+    provider: Google
+    model: "gemini-2.0-flash"
+    version: "2024-12"
+    sdk: google-generativeai
+    params: { temperature: 0.0 }
+    prompts: [simple, cot]
+    output_format: plain_text
+  claude_haiku_4_5:
+    provider: Anthropic
+    model: "claude-haiku-4-5"
+    version: "2025-10-01"
+    sdk: anthropic
+    params: { temperature: 0.0 }
+    prompts: [simple, cot]
+    output_format: plain_text
+  mistral_document_ai:
+    provider: "Mistral AI"
+    model: "mistral-ocr-2505-completion"
+    sdk: mistralai
+    prompt: none            # no configurable prompt interface
+    output_format: json_markdown
+
+open_source_vlm:
+  qwen2_5_vl:
+    provider: Alibaba
+    model: "Qwen/Qwen2.5-VL-3B-Instruct"
+    parameters: "3B"
+    served_with: "vLLM 0.4.2 (OpenAI-compatible API)"
+    container: "nvidia/cuda:12.2"
+    params: { temperature: 0.0 }
+    prompts: [simple, cot]
+    output_format: plain_text
+  gemma3:
+    provider: Google
+    model: "google/gemma-3-4b-it"
+    parameters: "4B"
+    served_with: "vLLM 0.4.2 (OpenAI-compatible API)"
+    container: "nvidia/cuda:12.2"
+    params: { temperature: 0.0 }
+    prompts: [simple, cot]
+    output_format: plain_text
+  paddleocr_vl:
+    provider: Baidu
+    model: "PaddlePaddle/PaddleOCR-VL"
+    parameters: "0.9B"
+    served_with: "vLLM 0.4.2 (OpenAI-compatible API)"
+    container: "nvidia/cuda:12.2"
+    params: { temperature: 0.0 }
+    prompt: 'OCR'
+    output_format: json_markdown
+  deepseek_ocr:
+    provider: DeepSeek
+    model: "deepseek-ai/DeepSeek-OCR"
+    parameters: "3.3B"
+    served_with: "vLLM 0.4.2 (OpenAI-compatible API)"
+    container: "nvidia/cuda:12.2"
+    params: { temperature: 0.0 }
+    prompt: '<image>\nFree OCR.'
+    output_format: json_markdown
