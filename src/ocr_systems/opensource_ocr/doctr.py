@@ -1,7 +1,3 @@
-"""
-DocTR OCR implementation.
-"""
-
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 import torch
@@ -10,8 +6,6 @@ from ..base import OCRSystem
 
 
 class DocTROCR(OCRSystem):
-    """DocTR OCR system implementation."""
-
     def __init__(self, name: str, config: dict):
         super().__init__(name, config)
         self.det_arch = config.get('det_arch', 'db_resnet50')
@@ -26,7 +20,6 @@ class DocTROCR(OCRSystem):
         ).to(self.device)
 
     def extract_raw_output(self, image_path: str) -> Dict[str, Any]:
-        """Extract raw DocTR output from an image."""
         doc = DocumentFile.from_images(image_path)
         result = self.predictor(doc)
         return result.export()
